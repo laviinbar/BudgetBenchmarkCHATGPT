@@ -10,13 +10,25 @@
 </head>
 <body>
 <header>
-  <h1>UK National Budget Simulator</h1>
-  <p>Create a custom UK budget and see projected economic outcomes over the next 12 months.</p>
+  <div class="header-top">
+    <h1>UK National Budget Simulator</h1>
+    <p>Step 1: Build your budget. Step 2: See what happens to the economy.</p>
+  </div>
+  <div class="step-indicator">
+    <span id="step1_badge" class="step-badge active">1. Build budget</span>
+    <span id="step2_badge" class="step-badge">2. See impact</span>
+  </div>
 </header>
 
 <main>
-  <section id="controls">
-    <h2>Budget Controls</h2>
+  <!-- ============ PAGE 1: BUILDER ============ -->
+  <section id="controls" class="page">
+    <h2>Step 1 – Choose your budget</h2>
+    <p class="page-intro">
+      Use the sliders below to tweak taxes, spending and policies. When you’re ready, click
+      <strong>Run Simulation</strong> to jump to a clean results page with simple graphs.
+    </p>
+
     <div class="controls-grid">
       <!-- TAX BLOCK -->
       <section class="control-panel">
@@ -25,7 +37,7 @@
         <fieldset>
           <legend>
             Income Tax Rates by Bracket
-            <span class="help" title="These are simplified representations of UK income tax brackets. Changes affect overall income tax revenue via elasticities.">?</span>
+            <span class="help" title="Simplified UK income tax brackets. Changes affect income tax revenue and work incentives.">?</span>
           </legend>
           <div class="field-row">
             <label for="income_basic_rate">Basic rate (%)</label>
@@ -92,7 +104,7 @@
             <input type="number" id="council_tax_change_num" min="-20" max="40" value="0">
           </div>
           <div class="field-row">
-            <label for="wealth_tax_rate">Wealth tax (% on net wealth over threshold)</label>
+            <label for="wealth_tax_rate">Wealth tax (% on big fortunes)</label>
             <input type="range" id="wealth_tax_rate" min="0" max="3" value="0" step="0.1">
             <input type="number" id="wealth_tax_rate_num" min="0" max="3" value="0" step="0.1">
           </div>
@@ -102,7 +114,7 @@
       <!-- SPENDING BLOCK -->
       <section class="control-panel">
         <h3>Government Spending</h3>
-        <p class="panel-note">Adjust spending relative to a baseline based on recent UK plans.</p>
+        <p class="panel-note">Adjust spending compared with a realistic baseline.</p>
 
         <fieldset>
           <legend>Major Departments (% change vs baseline)</legend>
@@ -166,7 +178,7 @@
             <input type="number" id="target_deficit_num" min="-1" max="8" value="5" step="0.5">
           </div>
           <p class="hint">
-            The model will adjust borrowing and minor/unprotected spending to hit this deficit target as closely as possible.
+            The model adjusts some “other” spending so your deficit moves towards this target.
           </p>
         </fieldset>
       </section>
@@ -184,7 +196,7 @@
           <div class="field-row">
             <label for="immigration_level">
               Net migration stance
-              <span class="help" title="0 = very tight controls, 100 = very open to migration; affects labour supply, demographics, and growth.">?</span>
+              <span class="help" title="0 = very tight controls; 100 = very open. Affects labour supply and growth.">?</span>
             </label>
             <input type="range" id="immigration_level" min="0" max="100" value="60">
             <input type="number" id="immigration_level_num" min="0" max="100" value="60">
@@ -192,7 +204,7 @@
           <div class="field-row">
             <label for="business_incentives">
               Business incentives
-              <span class="help" title="Tax breaks, startup support, R&D credits; higher values boost investment but cost revenue.">?</span>
+              <span class="help" title="Higher = more tax breaks for startups, R&D etc. Boosts investment but cuts receipts.">?</span>
             </label>
             <input type="range" id="business_incentives" min="0" max="100" value="50">
             <input type="number" id="business_incentives_num" min="0" max="100" value="50">
@@ -200,7 +212,6 @@
           <div class="field-row">
             <label for="trade_openness">
               Trade openness / tariffs
-              <span class="help" title="Higher values mean lower tariffs and fewer trade barriers; affects exports, imports and Brexit-related frictions.">?</span>
             </label>
             <input type="range" id="trade_openness" min="0" max="100" value="50">
             <input type="number" id="trade_openness_num" min="0" max="100" value="50">
@@ -219,7 +230,7 @@
           <div class="field-row">
             <label for="regulation_burden">
               Regulatory burden
-              <span class="help" title="How strict environmental, labour and product regulations are perceived to be.">?</span>
+              <span class="help" title="How strict environmental and labour regulations feel to businesses.">?</span>
             </label>
             <input type="range" id="regulation_burden" min="0" max="100" value="50">
             <input type="number" id="regulation_burden_num" min="0" max="100" value="50">
@@ -231,13 +242,12 @@
           <div class="field-row">
             <label for="shock_intensity">
               Shock intensity
-              <span class="help" title="How volatile the global environment is. Higher values increase the chance and size of random events like oil shocks or mini-recessions.">?</span>
             </label>
             <input type="range" id="shock_intensity" min="0" max="100" value="30">
             <input type="number" id="shock_intensity_num" min="0" max="100" value="30">
           </div>
           <p class="hint">
-            Each simulation draws a random scenario (e.g. tech boom, oil price spike, mild recession) with macro effects.
+            Higher values mean a bigger chance of things like oil price spikes, mini-recessions or tech booms.
           </p>
         </fieldset>
       </section>
@@ -247,7 +257,7 @@
       <div class="scenario-controls">
         <label for="scenario_name">Scenario name</label>
         <input type="text" id="scenario_name" placeholder="e.g. Green Growth Budget">
-        <button id="save_scenario">Save Scenario</button>
+        <button id="save_scenario">Save</button>
         <label for="load_scenario_select">Saved scenarios</label>
         <select id="load_scenario_select">
           <option value="">-- none --</option>
@@ -257,151 +267,161 @@
       </div>
 
       <div class="run-controls">
-        <button id="run_simulation" class="primary">Run Simulation</button>
-        <button id="reset_defaults">Reset to Baseline</button>
-        <button id="export_csv">Export CSV</button>
-        <button id="print_pdf">Print / Save as PDF</button>
+        <button id="run_simulation" class="primary">Run Simulation →</button>
+        <button id="reset_defaults">Reset</button>
       </div>
     </div>
   </section>
 
-  <section id="results">
-    <h2>Simulation Results – 12-Month Outlook</h2>
+  <!-- ============ PAGE 2: RESULTS ============ -->
+  <section id="results" class="page hidden">
+    <div class="results-header-row">
+      <button id="back_to_builder" class="ghost">&larr; Back to budget</button>
+      <h2>Step 2 – Impact of your budget</h2>
+    </div>
+    <p class="page-intro">
+      Here’s what happens over the next 12 months based on your choices. The top line cards and graphs are meant to be
+      super simple to read. You can open the advanced section if you want all the detail.
+    </p>
 
     <div id="summary-cards">
-      <div class="card">
-        <h3>GDP</h3>
-        <p class="metric"><span id="gdp_growth_outcome">–</span> real GDP growth (annualised)</p>
-        <p class="metric-sub">Level after 12 months: <span id="gdp_level_outcome">–</span> £bn</p>
-      </div>
-      <div class="card">
-        <h3>Labour Market</h3>
+      <div class="card big">
+        <h3>Economy</h3>
+        <p class="metric">GDP growth: <span id="gdp_growth_outcome">–</span></p>
         <p class="metric">Unemployment: <span id="unemployment_outcome">–</span></p>
-        <p class="metric-sub">Wage growth: <span id="wage_growth_outcome">–</span></p>
+        <p class="metric-sub">GDP after 12 months: <span id="gdp_level_outcome">–</span></p>
       </div>
-      <div class="card">
-        <h3>Fiscal Position</h3>
-        <p class="metric">Deficit: <span id="deficit_outcome">–</span> of GDP</p>
-        <p class="metric-sub">Debt: <span id="debt_outcome">–</span> of GDP after 12 months</p>
-      </div>
-      <div class="card">
-        <h3>Inflation & Rates</h3>
+      <div class="card big">
+        <h3>Cost of Living</h3>
         <p class="metric">Inflation (CPI): <span id="inflation_outcome">–</span></p>
-        <p class="metric-sub">BoE base rate: <span id="rate_outcome">–</span></p>
+        <p class="metric">Base interest rate: <span id="rate_outcome">–</span></p>
+        <p class="metric-sub">House price growth: <span id="house_price_outcome">–</span></p>
+      </div>
+      <div class="card big">
+        <h3>Public Finances</h3>
+        <p class="metric">Deficit: <span id="deficit_outcome">–</span> of GDP</p>
+        <p class="metric">Debt: <span id="debt_outcome">–</span> of GDP</p>
+        <p class="metric-sub">Shock this year: <span id="shock_short">–</span></p>
       </div>
     </div>
 
-    <div class="charts-grid">
+    <div class="charts-grid simple-charts">
       <div class="chart-card">
-        <h3>GDP & Unemployment over 12 Months</h3>
+        <h3>GDP & Unemployment (next 12 months)</h3>
         <canvas id="macro_chart" aria-label="GDP and unemployment over time"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Spending Allocation</h3>
-        <canvas id="spend_chart" aria-label="Spending allocation by department"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Tax Revenues by Type</h3>
-        <canvas id="tax_chart" aria-label="Tax revenue composition"></canvas>
-      </div>
-    </div>
-
-    <section id="detailed-indicators">
-      <h3>Detailed Indicators</h3>
-      <div class="indicator-grid">
-        <div>
-          <h4>Business & Investment</h4>
-          <ul>
-            <li>Net business formation: <span id="business_formation_outcome">–</span></li>
-            <li>FDI index: <span id="fdi_outcome">–</span></li>
-            <li>Startup ecosystem health: <span id="startup_outcome">–</span></li>
-            <li>Non-dom net flow: <span id="nondom_outcome">–</span></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Social & Inequality</h4>
-          <ul>
-            <li>Poverty rate: <span id="poverty_outcome">–</span></li>
-            <li>Gini coefficient: <span id="gini_outcome">–</span></li>
-            <li>Homelessness index: <span id="homeless_outcome">–</span></li>
-            <li>Food bank usage index: <span id="foodbank_outcome">–</span></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Health & Education</h4>
-          <ul>
-            <li>NHS waiting time index: <span id="nhs_wait_outcome">–</span></li>
-            <li>Life expectancy (years): <span id="life_expectancy_outcome">–</span></li>
-            <li>School performance index: <span id="school_perf_outcome">–</span></li>
-            <li>Apprenticeship starts index: <span id="apprentice_outcome">–</span></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Environment & Energy</h4>
-          <ul>
-            <li>CO₂ emissions vs baseline: <span id="emissions_outcome">–</span></li>
-            <li>Renewables share: <span id="renewables_outcome">–</span></li>
-            <li>Energy price index: <span id="energy_price_outcome">–</span></li>
-            <li>Air quality index: <span id="air_quality_outcome">–</span></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Housing & Cost of Living</h4>
-          <ul>
-            <li>House price growth: <span id="house_price_outcome">–</span></li>
-            <li>Rent affordability: <span id="rent_afford_outcome">–</span></li>
-            <li>New housing supply index: <span id="housing_supply_outcome">–</span></li>
-            <li>Fuel poverty rate: <span id="fuel_poverty_outcome">–</span></li>
-          </ul>
-        </div>
-        <div>
-          <h4>International & Risks</h4>
-          <ul>
-            <li>Trade balance (% of GDP): <span id="trade_balance_outcome">–</span></li>
-            <li>Tourism flows index: <span id="tourism_outcome">–</span></li>
-            <li>Public unrest risk: <span id="unrest_outcome">–</span></li>
-            <li>Brain drain risk: <span id="brain_drain_outcome">–</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="shock-summary">
-        <h4>Random Event This Year</h4>
-        <p id="shock_description">No simulation run yet.</p>
-      </div>
-
-      <div class="text-report">
-        <h3>Summary Report</h3>
-        <p id="text_summary">
-          Adjust the controls and click “Run Simulation” to see a narrative assessment of your budget.
+        <p class="chart-caption">
+          Line up = growing economy. Line down = shrinking. Unemployment is shown as a % of the workforce.
         </p>
       </div>
-    </section>
+      <div class="chart-card">
+        <h3>Deficit & Debt vs GDP</h3>
+        <canvas id="fiscal_chart" aria-label="Deficit and debt compared to GDP"></canvas>
+        <p class="chart-caption">
+          Shows your deficit target vs actual, and how debt compares with the size of the economy.
+        </p>
+      </div>
+      <div class="chart-card">
+        <h3>Where the Money Goes</h3>
+        <canvas id="spend_chart" aria-label="Spending allocation by department"></canvas>
+        <p class="chart-caption">
+          Bigger bars = more money. This is annual spending in £ billions by department.
+        </p>
+      </div>
+    </div>
+
+    <div class="text-report">
+      <h3>Short narrative summary</h3>
+      <p id="text_summary">
+        Adjust the controls and click “Run Simulation” to see a narrative in plain English.
+      </p>
+    </div>
+
+    <details id="advanced_block">
+      <summary>Show advanced breakdown (inequality, NHS, housing, climate...)</summary>
+      <section id="detailed-indicators">
+        <h3>Advanced Indicators</h3>
+        <div class="indicator-grid">
+          <div>
+            <h4>Business & Investment</h4>
+            <ul>
+              <li>Net business formation: <span id="business_formation_outcome">–</span></li>
+              <li>FDI index: <span id="fdi_outcome">–</span></li>
+              <li>Startup ecosystem health: <span id="startup_outcome">–</span></li>
+              <li>Non-dom net flow: <span id="nondom_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Social & Inequality</h4>
+            <ul>
+              <li>Poverty rate: <span id="poverty_outcome">–</span></li>
+              <li>Gini coefficient: <span id="gini_outcome">–</span></li>
+              <li>Homelessness index: <span id="homeless_outcome">–</span></li>
+              <li>Food bank usage index: <span id="foodbank_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Health & Education</h4>
+            <ul>
+              <li>NHS waiting time index: <span id="nhs_wait_outcome">–</span></li>
+              <li>Life expectancy (years): <span id="life_expectancy_outcome">–</span></li>
+              <li>School performance index: <span id="school_perf_outcome">–</span></li>
+              <li>Apprenticeship starts index: <span id="apprentice_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Environment & Energy</h4>
+            <ul>
+              <li>CO₂ emissions vs baseline: <span id="emissions_outcome">–</span></li>
+              <li>Renewables share: <span id="renewables_outcome">–</span></li>
+              <li>Energy price index: <span id="energy_price_outcome">–</span></li>
+              <li>Air quality index: <span id="air_quality_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Housing & Cost of Living</h4>
+            <ul>
+              <li>House price growth: <span id="house_price_outcome_adv">–</span></li>
+              <li>Rent affordability: <span id="rent_afford_outcome">–</span></li>
+              <li>New housing supply index: <span id="housing_supply_outcome">–</span></li>
+              <li>Fuel poverty rate: <span id="fuel_poverty_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>International & Risks</h4>
+            <ul>
+              <li>Trade balance (% of GDP): <span id="trade_balance_outcome">–</span></li>
+              <li>Tourism flows index: <span id="tourism_outcome">–</span></li>
+              <li>Public unrest risk: <span id="unrest_outcome">–</span></li>
+              <li>Brain drain risk: <span id="brain_drain_outcome">–</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="shock-summary">
+          <h4>Random Event This Year</h4>
+          <p id="shock_description">No simulation run yet.</p>
+        </div>
+      </section>
+    </details>
+
+    <div class="export-row">
+      <button id="export_csv">Export CSV</button>
+      <button id="print_pdf">Print / Save as PDF</button>
+    </div>
 
     <section id="assumptions">
-      <h2>Model Assumptions & Data Sources</h2>
+      <h2>Model assumptions (for context)</h2>
       <p>
-        The default baseline approximates the UK economy in 2024–25 using data from the Office for National Statistics,
-        the Office for Budget Responsibility, the House of Commons Library and the Institute for Fiscal Studies.
-      </p>
-      <ul>
-        <li>Cash GDP around £2.9 trillion in 2024. :contentReference[oaicite:0]{index=0}</li>
-        <li>Tax receipts roughly 39–41% of GDP (around £1.1 trillion). :contentReference[oaicite:1]{index=1}</li>
-        <li>Public spending about 44% of GDP (~£1.28 trillion), with around 30% on social protection and 19% on health. :contentReference[oaicite:2]{index=2}</li>
-        <li>Public sector net debt close to 94–95% of GDP; net borrowing around 5% of GDP. :contentReference[oaicite:3]{index=3}</li>
-        <li>Tax composition based on recent IFS and Commons Library summaries (income tax, NICs and VAT as largest sources). :contentReference[oaicite:4]{index=4}</li>
-      </ul>
-      <p>
-        The simulation uses simplified Keynesian and supply-side relationships, Okun-style links from growth to unemployment,
-        and stylised connections between spending, outcomes (e.g. NHS waiting times, education quality) and social indicators.
-        It is <strong>not</strong> an official forecast and should be treated as an educational sandbox, not a policy tool.
+        Baseline numbers roughly match the UK in 2024–25 (GDP, tax take, spending by department, and debt levels).
+        The engine uses simplified Keynesian and supply-side effects to connect your budget to growth, jobs, inflation,
+        and social outcomes. It’s an educational sandbox, not an official forecast.
       </p>
     </section>
   </section>
 </main>
 
 <footer>
-  <p>Open-source demo for the Budget Benchmark challenge. You can adapt and improve the model and assumptions.</p>
+  <p>Open-source demo for the Budget Benchmark challenge. Modify the model and UI as you wish.</p>
 </footer>
 
 <script src="app.js"></script>
