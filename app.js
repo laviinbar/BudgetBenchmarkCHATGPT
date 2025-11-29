@@ -1,19 +1,18 @@
-// ====== BASELINE PARAMETERS (stylised, UK 2024–25) ======
+// ====== BASELINE PARAMETERS (stylised) ======
 
 const BASELINE = {
-  yearGDP: 2884,          // £bn, 2024 GDP (approx)
-  taxToGDP: 0.393,        // total receipts / GDP
-  spendToGDP: 0.444,      // total public spending / GDP
-  debtToGDP: 0.945,       // public sector net debt / GDP
-  realGDPGrowth: 0.013,   // 1.3% baseline
-  inflation: 0.02,        // 2% CPI
-  unemployment: 0.045,    // 4.5%
-  interestRate: 0.045,    // 4.5% BoE base rate approx
-  exchangeRate: 1.25,     // £1 ≈ $1.25 (stylised)
-  ftse: 7800              // stylised FTSE level
+  yearGDP: 2884,          // £bn
+  taxToGDP: 0.393,
+  spendToGDP: 0.444,
+  debtToGDP: 0.945,
+  realGDPGrowth: 0.013,
+  inflation: 0.02,
+  unemployment: 0.045,
+  interestRate: 0.045,
+  exchangeRate: 1.25,
+  ftse: 7800
 };
 
-// Tax composition shares of total tax revenue (stylised, consistent with IFS/HoC)
 const TAX_SHARES = {
   income: 0.28,
   nic: 0.18,
@@ -28,7 +27,6 @@ const TAX_SHARES = {
   councilTax: 0.04
 };
 
-// Spending composition shares of total managed expenditure
 const SPEND_SHARES = {
   health: 0.19,
   education: 0.09,
@@ -41,15 +39,14 @@ const SPEND_SHARES = {
   foreignAid: 0.005,
   infrastructure: 0.05,
   debtInterest: 0.08,
-  other: 0.185 // whatever is left
+  other: 0.185
 };
 
-// Global state for charts and comparison
-let macroChart, spendChart, taxChart;
+let macroChart, spendChart, fiscalChart;
 let lastResults = null;
 let comparisonResults = null;
 
-// ====== HELPER FUNCTIONS ======
+// ====== HELPERS ======
 
 function $(id) {
   return document.getElementById(id);
@@ -63,15 +60,13 @@ function syncPair(rangeId, numId) {
   n.addEventListener('input', () => { r.value = n.value; });
 }
 
-// Clamp value
 function clamp(x, min, max) {
   return Math.min(max, Math.max(min, x));
 }
 
-// ====== INIT CONTROLS & EVENTS ======
+// ====== INIT ======
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Sync all range/number pairs
   const pairs = [
     ['income_basic_rate', 'income_basic_rate_num'],
     ['income_higher_rate', 'income_higher_rate_num'],
@@ -109,34 +104,55 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   pairs.forEach(([r, n]) => syncPair(r, n));
 
-  initCharts();
-  loadScenariosFromStorage();
   attachButtons();
-  runSimulation(); // initial baseline
+  initCharts();
+  runSimulation(); // sets baseline results (doesn't switch page)
 });
 
 function attachButtons() {
-  $('run_simulation').addEventListener('click', runSimulation);
+  $('run_simulation').addEventListener('click', () => {
+    runSimulation();
+    showResultsPage();
+  });
   $('reset_defaults').addEventListener('click', () => {
     window.location.reload();
   });
+  $('back_to_builder').addEventListener('click', () => {
+    showBuilderPage();
+  });
+
   $('save_scenario').addEventListener('click', saveScenario);
   $('load_scenario').addEventListener('click', () => loadScenario(false));
   $('compare_scenario').addEventListener('click', () => loadScenario(true));
+
   $('export_csv').addEventListener('click', exportCSV);
   $('print_pdf').addEventListener('click', () => window.print());
 }
 
-// ====== POLICY EXTRACTION ======
+function showResultsPage() {
+  $('controls').classList.add('hidden');
+  $('results').classList.remove('hidden');
+  $('step1_badge').classList.remove('active');
+  $('step2_badge').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showBuilderPage() {
+  $('results').classList.add('hidden');
+  $('controls').classList.remove('hidden');
+  $('step2_badge').classList.remove('active');
+  $('step1_badge').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ====== GET POLICY ======
 
 function getPolicyFromUI() {
   return {
-    // Income tax brackets
     incomeBasic: parseFloat($('income_basic_rate').value),
     incomeHigher: parseFloat($('income_higher_rate').value),
     incomeAdditional: parseFloat($('income_additional_rate').value),
 
-    // Corporate / VAT / NICs etc.
     corpRate: parseFloat($('corp_rate').value),
     vatRate: parseFloat($('vat_rate').value),
     nicChange: parseFloat($('nic_change').value) / 100,
@@ -148,7 +164,6 @@ function getPolicyFromUI() {
     councilTaxChange: parseFloat($('council_tax_change').value) / 100,
     wealthTaxRate: parseFloat($('wealth_tax_rate').value) / 100,
 
-    // Spending changes (percentage vs baseline)
     spendChanges: {
       health: parseFloat($('health_spend_change').value) / 100,
       education: parseFloat($('education_spend_change').value) / 100,
@@ -163,7 +178,6 @@ function getPolicyFromUI() {
     },
     targetDeficitPct: parseFloat($('target_deficit').value) / 100,
 
-    // Other policies
     minWageChange: parseFloat($('min_wage_change').value) / 100,
     immigrationLevel: parseFloat($('immigration_level').value) / 100,
     businessIncentives: parseFloat($('business_incentives').value) / 100,
@@ -174,21 +188,19 @@ function getPolicyFromUI() {
   };
 }
 
-// ====== TAX & SPENDING MODELS ======
+// ====== TAX & SPENDING ======
 
 function computeTaxRevenue(policy) {
   const baseTax = BASELINE.yearGDP * BASELINE.taxToGDP;
 
-  // Approximate income tax effective rate index based on brackets
   const baseBasic = 0.6, baseHigher = 0.3, baseAdditional = 0.1;
-  const baseAverageRate = 0.6 * 20 + 0.3 * 40 + 0.1 * 45; // 28.5%
+  const baseAverageRate = 0.6 * 20 + 0.3 * 40 + 0.1 * 45;
   const newAverageRate =
     baseBasic * policy.incomeBasic + baseHigher * policy.incomeHigher + baseAdditional * policy.incomeAdditional;
   const incomeRateIndex = newAverageRate / baseAverageRate;
   const incomeElasticity = 0.8;
   const incomeRevenueFactor = Math.pow(incomeRateIndex, incomeElasticity);
 
-  // Corporation tax – Laffer-style small penalty at high levels
   const baseCorpRate = 25;
   const corpRateIndex = policy.corpRate / baseCorpRate;
   let corpRevenueFactor = Math.pow(corpRateIndex, 0.7);
@@ -197,35 +209,28 @@ function computeTaxRevenue(policy) {
   }
   corpRevenueFactor = clamp(corpRevenueFactor, 0.5, 1.3);
 
-  // VAT
   const baseVAT = 20;
   const vatRateIndex = policy.vatRate / baseVAT;
   const vatRevenueFactor = Math.pow(vatRateIndex, 0.9);
 
-  // NICs
   const nicRevenueFactor = 1 + policy.nicChange * 0.9;
-
-  // Capital gains & inheritance more volatile
   const cgtRevenueFactor = 1 + policy.cgtChange * 0.8;
   const ihtRevenueFactor = 1 + policy.ihtChange * 0.7;
 
-  // Duties etc.
   const fuelFactor = 1 + policy.fuelDutyChange * 0.8;
   const alcoholFactor = 1 + policy.alcoholDutyChange * 0.7;
   const stampFactor = 1 + policy.stampDutyChange * 0.6;
   const councilFactor = 1 + policy.councilTaxChange * 0.95;
 
-  // Wealth tax – simple add-on: assume 0.3% of GDP per 1% wealth tax
   const wealthTaxRevenue = BASELINE.yearGDP * (policy.wealthTaxRate * 0.3);
 
-  // Business incentives reduce some revenues slightly
   const incentiveDrag = 1 - 0.05 * policy.businessIncentives;
 
   const incomeTax = baseTax * TAX_SHARES.income * incomeRevenueFactor * incentiveDrag;
   const nicTax = baseTax * TAX_SHARES.nic * nicRevenueFactor;
   const vatTax = baseTax * TAX_SHARES.vat * vatRevenueFactor;
   const corpTax = baseTax * TAX_SHARES.company * corpRevenueFactor * incentiveDrag;
-  const otherIndirect = baseTax * TAX_SHARES.otherIndirect; // leave mostly unchanged
+  const otherIndirect = baseTax * TAX_SHARES.otherIndirect;
   const cgtTax = baseTax * TAX_SHARES.capitalGains * cgtRevenueFactor;
   const ihtTax = baseTax * TAX_SHARES.inheritance * ihtRevenueFactor;
   const fuelTax = baseTax * TAX_SHARES.fuel * fuelFactor;
@@ -276,7 +281,6 @@ function computeSpending(policy) {
   const foreignAid = upd(SPEND_SHARES.foreignAid, 'foreignAid');
   const infrastructure = upd(SPEND_SHARES.infrastructure, 'infrastructure');
 
-  // Debt interest roughly tracks debt & interest rate (adjusted later)
   let debtInterest = baseSpend * SPEND_SHARES.debtInterest;
   const other = baseSpend * SPEND_SHARES.other;
 
@@ -303,62 +307,26 @@ function computeSpending(policy) {
   };
 }
 
-// ====== RANDOM SHOCKS ======
+// ====== SHOCKS ======
 
 function drawShock(policy) {
-  const intensity = policy.shockIntensity; // 0–1
+  const intensity = policy.shockIntensity;
   if (intensity < 0.05) {
     return { name: 'Calm global environment', gdpDelta: 0, inflationDelta: 0, unempDelta: 0, risk: 0, fxRisk: 0 };
   }
 
   const scenarios = [
-    {
-      name: 'Mild global slowdown',
-      gdpDelta: -0.007,
-      inflationDelta: -0.002,
-      unempDelta: 0.004,
-      risk: 0.2,
-      fxRisk: 0.1
-    },
-    {
-      name: 'Energy price spike',
-      gdpDelta: -0.005,
-      inflationDelta: 0.015,
-      unempDelta: 0.002,
-      risk: 0.25,
-      fxRisk: 0.1
-    },
-    {
-      name: 'Tech-led productivity boom',
-      gdpDelta: 0.01,
-      inflationDelta: -0.003,
-      unempDelta: -0.004,
-      risk: -0.1,
-      fxRisk: -0.05
-    },
-    {
-      name: 'Mini financial wobble',
-      gdpDelta: -0.004,
-      inflationDelta: -0.001,
-      unempDelta: 0.003,
-      risk: 0.3,
-      fxRisk: 0.15
-    },
-    {
-      name: 'Strong global demand for UK services',
-      gdpDelta: 0.006,
-      inflationDelta: 0.002,
-      unempDelta: -0.003,
-      risk: -0.05,
-      fxRisk: -0.08
-    }
+    { name: 'Mild global slowdown', gdpDelta: -0.007, inflationDelta: -0.002, unempDelta: 0.004, risk: 0.2, fxRisk: 0.1 },
+    { name: 'Energy price spike', gdpDelta: -0.005, inflationDelta: 0.015, unempDelta: 0.002, risk: 0.25, fxRisk: 0.1 },
+    { name: 'Tech-led productivity boom', gdpDelta: 0.01, inflationDelta: -0.003, unempDelta: -0.004, risk: -0.1, fxRisk: -0.05 },
+    { name: 'Mini financial wobble', gdpDelta: -0.004, inflationDelta: -0.001, unempDelta: 0.003, risk: 0.3, fxRisk: 0.15 },
+    { name: 'Strong global demand for UK services', gdpDelta: 0.006, inflationDelta: 0.002, unempDelta: -0.003, risk: -0.05, fxRisk: -0.08 }
   ];
 
   const roll = Math.random();
   const index = Math.min(scenarios.length - 1, Math.floor(roll * scenarios.length));
   const s = scenarios[index];
 
-  // Scale by intensity
   return {
     name: s.name,
     gdpDelta: s.gdpDelta * intensity,
@@ -369,7 +337,7 @@ function drawShock(policy) {
   };
 }
 
-// ====== MAIN MACRO MODEL ======
+// ====== MAIN SIM ======
 
 function runSimulation() {
   const policy = getPolicyFromUI();
@@ -380,13 +348,12 @@ function runSimulation() {
   const baseSpend = BASELINE.yearGDP * BASELINE.spendToGDP;
 
   const primaryBalance = tax.total - (spend.total - spend.breakdown.debtInterest);
-  let deficit = spend.total - tax.total; // positive = deficit
+  let deficit = spend.total - tax.total;
   let deficitToGDP = deficit / BASELINE.yearGDP;
 
-  // Try to steer deficit towards policy target by adjusting "other" spending
   const targetDeficit = policy.targetDeficitPct;
   const gap = deficitToGDP - targetDeficit;
-  const adjustment = clamp(gap, -0.02, 0.02); // up to 2% of GDP cut/increase
+  const adjustment = clamp(gap, -0.02, 0.02);
   const adjustAmount = adjustment * BASELINE.yearGDP;
 
   spend.breakdown.other = Math.max(0, spend.breakdown.other - adjustAmount);
@@ -395,7 +362,6 @@ function runSimulation() {
   deficit = spend.total - tax.total;
   deficitToGDP = deficit / BASELINE.yearGDP;
 
-  // Demand-side impulse
   const deltaG = (spend.total - baseSpend) / BASELINE.yearGDP;
   const deltaT = (tax.total - baseTax) / BASELINE.yearGDP;
 
@@ -403,15 +369,13 @@ function runSimulation() {
   const multiplierT = 0.9;
   const demandShock = multiplierG * deltaG - multiplierT * deltaT;
 
-  // Supply-side & structural effects
   const corpGap = policy.corpRate - 25;
-  const corpPenalty = 0.002 * (corpGap / 10); // +/-0.2pp per 10 pts
-  const regulationPenalty = 0.005 * (policy.regulationBurden - 0.5); // +/-0.25pp
-  const incentivesBoost = 0.006 * (policy.businessIncentives - 0.5); // +/-0.3pp
-  const tradeBoost = 0.004 * (policy.tradeOpenness - 0.5); // +/-0.2pp
-  const immigrationBoost = 0.005 * (policy.immigrationLevel - 0.6); // around current
+  const corpPenalty = 0.002 * (corpGap / 10);
+  const regulationPenalty = 0.005 * (policy.regulationBurden - 0.5);
+  const incentivesBoost = 0.006 * (policy.businessIncentives - 0.5);
+  const tradeBoost = 0.004 * (policy.tradeOpenness - 0.5);
+  const immigrationBoost = 0.005 * (policy.immigrationLevel - 0.6);
 
-  // Minimum wage – small boost if modest, drag if big
   let minWageEffect = 0;
   if (policy.minWageChange > 0.05) {
     minWageEffect = -0.004 * (policy.minWageChange - 0.05);
@@ -419,7 +383,6 @@ function runSimulation() {
     minWageEffect = 0.002 * policy.minWageChange;
   }
 
-  // Carbon tax – short-term drag, long-term small boost. Horizon is 1 year, so mostly drag.
   const carbonDrag = -0.003 * policy.carbonTaxLevel;
 
   const structuralShock = -corpPenalty - regulationPenalty + incentivesBoost +
@@ -427,31 +390,25 @@ function runSimulation() {
 
   const shock = drawShock(policy);
 
-  // Total real GDP growth (annualised)
   let gdpGrowth = BASELINE.realGDPGrowth + demandShock + structuralShock + shock.gdpDelta;
-  gdpGrowth = clamp(gdpGrowth, -0.05, 0.06); // -5% to +6%
+  gdpGrowth = clamp(gdpGrowth, -0.05, 0.06);
 
-  // Unemployment via Okun-style relationship
   const growthGap = gdpGrowth - BASELINE.realGDPGrowth;
   let unemployment = BASELINE.unemployment - 0.4 * growthGap + shock.unempDelta;
-  // Very high minimum wage increases unemployment
   if (policy.minWageChange > 0.2) {
     unemployment += 0.01 * (policy.minWageChange - 0.2);
   }
   unemployment = clamp(unemployment, 0.025, 0.15);
 
-  // Inflation – Phillips curve + demand + energy
   const demandInflation = 0.8 * demandShock;
   const gapInflation = 0.4 * (BASELINE.unemployment - unemployment);
   let inflation = BASELINE.inflation + demandInflation + gapInflation +
     0.007 * policy.carbonTaxLevel + shock.inflationDelta;
   inflation = clamp(inflation, 0, 0.1);
 
-  // Interest rate reaction function
   let interestRate = 0.03 + 0.6 * (inflation - 0.02) + 0.05 * (deficitToGDP - BASELINE.realGDPGrowth);
   interestRate = clamp(interestRate, 0.01, 0.08);
 
-  // Debt dynamics (one-year horizon)
   const baseDebt = BASELINE.debtToGDP * BASELINE.yearGDP;
   const interestCost = baseDebt * interestRate;
   const totalDeficit = deficit + interestCost;
@@ -459,12 +416,6 @@ function runSimulation() {
   const endYearGDP = BASELINE.yearGDP * (1 + gdpGrowth);
   const debtToGDP = newDebt / endYearGDP;
 
-  // Wages and productivity (stylised)
-  const wageGrowth = 0.02 + 0.4 * gdpGrowth - 0.2 * unemployment;
-  const productivityGrowth = 0.01 + 0.3 * gdpGrowth +
-    0.01 * policy.education_spend_change || 0;
-
-  // Generate monthly time series for charts
   const months = [];
   const gdpSeries = [];
   const unempSeries = [];
@@ -478,7 +429,6 @@ function runSimulation() {
 
   for (let m = 1; m <= 12; m++) {
     months.push(`M${m}`);
-    // simple monthly compounding
     gdpLevel *= Math.pow(1 + gdpGrowth, 1 / 12);
     u += (unemployment - BASELINE.unemployment) / 12;
 
@@ -493,7 +443,6 @@ function runSimulation() {
     }
   }
 
-  // Business & social indicators
   const indicators = computeIndicators({
     policy,
     tax,
@@ -503,6 +452,7 @@ function runSimulation() {
     inflation,
     interestRate,
     debtToGDP,
+    deficitToGDP,
     shock
   });
 
@@ -522,7 +472,8 @@ function runSimulation() {
     tax,
     spend,
     indicators,
-    shock
+    shock,
+    targetDeficit: policy.targetDeficitPct
   };
 
   updateSummary(lastResults);
@@ -531,10 +482,15 @@ function runSimulation() {
   updateTextSummary(lastResults);
 }
 
-// ====== INDICATORS BY AREA ======
+// ====== INDICATORS ======
+
+function pensionsChange(spend) {
+  const base = BASELINE.yearGDP * BASELINE.spendToGDP * SPEND_SHARES.pensions;
+  return spend.breakdown.pensions / base - 1;
+}
 
 function computeIndicators(ctx) {
-  const { policy, tax, spend, gdpGrowth, unemployment, inflation, interestRate, debtToGDP, deficitToGDP, shock } = ctx;
+  const { policy, spend, gdpGrowth, unemployment, inflation, debtToGDP, deficitToGDP, shock } = ctx;
 
   const basePoverty = 0.18;
   const baseGini = 0.35;
@@ -549,24 +505,25 @@ function computeIndicators(ctx) {
   const infraChange = (spend.breakdown.infrastructure / (BASELINE.yearGDP * BASELINE.spendToGDP * SPEND_SHARES.infrastructure)) - 1;
   const envChange = (spend.breakdown.environment / (BASELINE.yearGDP * BASELINE.spendToGDP * SPEND_SHARES.environment)) - 1;
 
-  // Business & investment
   const businessFormationIndex = 100 +
     40 * (gdpGrowth - BASELINE.realGDPGrowth) * 100 +
     25 * (policy.businessIncentives - 0.5) -
     20 * (policy.corpRate - 25) / 10 -
     10 * (policy.regulationBurden - 0.5);
+
   const fdiIndex = 100 +
     30 * (policy.tradeOpenness - 0.5) +
     20 * (policy.businessIncentives - 0.5) -
     25 * (policy.corpRate - 25) / 10 -
     10 * shock.risk;
+
   const startupIndex = 100 +
     25 * (policy.businessIncentives - 0.5) +
     15 * educationChange -
     10 * (policy.regulationBurden - 0.5);
+
   const nonDomFlow = -5 * (policy.incomeAdditional - 0.45) * 100 - 3 * policy.wealthTaxRate * 100;
 
-  // Social & inequality
   const povertyRate = clamp(
     basePoverty +
     0.4 * (unemployment - BASELINE.unemployment) +
@@ -575,40 +532,45 @@ function computeIndicators(ctx) {
     0.05 * pensionsChange(spend),
     0.1, 0.3
   );
+
   const gini = clamp(
     baseGini +
-    0.05 * (policy.incomeBasic - 0.2) - // more progressive basic rate slightly reduces inequality
+    0.05 * (policy.incomeBasic - 0.2) -
     0.1 * welfareChange +
     0.02 * (policy.tradeOpenness - 0.5),
     0.28, 0.42
   );
+
   const homelessIdx = clamp(
     baseHomeless +
     2 * (housingChange * -1) +
     3 * (unemployment - BASELINE.unemployment),
     0.6, 1.6
   );
+
   const foodbankIdx = clamp(
     baseFoodbank +
     4 * (povertyRate - basePoverty),
     0.7, 1.8
   );
 
-  // Health & education
   const nhsWaitIndex = clamp(
     100 - 40 * healthChange + 20 * (inflation - BASELINE.inflation),
     60, 140
   );
+
   const lifeExpectancy = clamp(
     baseLifeExp +
     0.3 * healthChange -
     0.2 * (povertyRate - basePoverty),
     79, 83
   );
+
   const schoolPerfIndex = clamp(
     100 + 30 * educationChange - 5 * (povertyRate - basePoverty) * 100,
     80, 120
   );
+
   const apprenticeshipIndex = clamp(
     100 +
     20 * educationChange +
@@ -616,39 +578,43 @@ function computeIndicators(ctx) {
     80, 140
   );
 
-  // Environment & energy
   const emissionsChange = clamp(
     -0.5 * policy.carbonTaxLevel - 0.3 * envChange,
     -0.5, 0.2
-  ); // -50% to +20%
+  );
+
   const renewablesShare = clamp(
     0.4 + 0.3 * envChange + 0.2 * policy.carbonTaxLevel,
     0.2, 0.8
   );
+
   const energyPriceIndex = clamp(
     100 + 50 * policy.carbonTaxLevel + 15 * shock.inflationDelta * 100,
     80, 170
   );
+
   const airQualityIndex = clamp(
     80 - 30 * emissionsChange,
     60, 120
   );
 
-  // Housing & cost of living
   const housePriceGrowth = clamp(
-    0.02 + 0.5 * gdpGrowth - 0.3 * housingChange - 0.1 * interestRate,
+    0.02 + 0.5 * gdpGrowth - 0.3 * housingChange - 0.1 * (0.03 + 0.5 * (debtToGDP - BASELINE.debtToGDP)),
     -0.05, 0.1
   );
+
   const rentAffordability = clamp(
     0.30 +
     0.1 * (povertyRate - basePoverty) -
     0.05 * housingChange,
     0.2, 0.4
   );
+
   const housingSupplyIndex = clamp(
     100 + 40 * housingChange + 20 * infraChange,
     70, 160
   );
+
   const fuelPovertyRate = clamp(
     0.12 +
     0.3 * (energyPriceIndex - 100) / 100 -
@@ -656,15 +622,16 @@ function computeIndicators(ctx) {
     0.05, 0.25
   );
 
-  // International & risk
   const tradeBalance = clamp(
     -0.02 + 0.03 * (policy.tradeOpenness - 0.5) + 0.01 * shock.gdpDelta * 100,
     -0.05, 0.03
   );
+
   const tourismIndex = clamp(
     100 + 20 * (policy.tradeOpenness - 0.5) + 10 * (gdpGrowth - BASELINE.realGDPGrowth) * 100,
     80, 130
   );
+
   const unrestRisk = clamp(
     0.2 +
     0.5 * (povertyRate - basePoverty) +
@@ -673,6 +640,7 @@ function computeIndicators(ctx) {
     0.3 * welfareChange,
     0, 1
   );
+
   const brainDrainRisk = clamp(
     0.2 +
     0.5 * (policy.incomeAdditional - 0.45) +
@@ -709,49 +677,45 @@ function computeIndicators(ctx) {
   };
 }
 
-function pensionsChange(spend) {
-  const base = BASELINE.yearGDP * BASELINE.spendToGDP * SPEND_SHARES.pensions;
-  return spend.breakdown.pensions / base - 1;
-}
-
-// ====== UI UPDATES ======
+// ====== UI HELPERS ======
 
 function fmtPct(x) {
   return (x * 100).toFixed(1) + '%';
 }
-
-function fmtPct0(x) {
-  return (x * 100).toFixed(0) + '%';
-}
-
 function fmtRate(x) {
   return (x * 100).toFixed(1) + '%';
 }
-
 function fmtMoneyBn(x) {
   return '£' + x.toFixed(0) + 'bn';
 }
 
+// ====== UPDATE SUMMARY ======
+
 function updateSummary(r) {
   $('gdp_growth_outcome').textContent = fmtRate(r.gdpGrowth);
   $('gdp_level_outcome').textContent = fmtMoneyBn(r.endYearGDP);
-
   $('unemployment_outcome').textContent = fmtRate(r.unemployment);
-  $('wage_growth_outcome').textContent = fmtRate(0.02 + 0.4 * r.gdpGrowth - 0.2 * r.unemployment);
-
-  $('deficit_outcome').textContent = fmtPct(r.deficitToGDP);
-  $('debt_outcome').textContent = fmtPct(r.debtToGDP);
 
   $('inflation_outcome').textContent = fmtRate(r.inflation);
   $('rate_outcome').textContent = fmtRate(r.interestRate);
 
+  const houseGrowth = r.indicators.housePriceGrowth;
+  $('house_price_outcome').textContent = fmtRate(houseGrowth);
+  $('house_price_outcome_adv').textContent = fmtRate(houseGrowth);
+
+  $('deficit_outcome').textContent = fmtPct(r.deficitToGDP);
+  $('debt_outcome').textContent = fmtPct(r.debtToGDP);
+
+  $('shock_short').textContent = r.shock.name;
   $('shock_description').textContent = r.shock.name;
 }
+
+// ====== CHARTS ======
 
 function initCharts() {
   const macroCtx = $('macro_chart').getContext('2d');
   const spendCtx = $('spend_chart').getContext('2d');
-  const taxCtx = $('tax_chart').getContext('2d');
+  const fiscalCtx = $('fiscal_chart').getContext('2d');
 
   macroChart = new Chart(macroCtx, {
     type: 'line',
@@ -793,11 +757,13 @@ function initCharts() {
         y1: {
           type: 'linear',
           position: 'left',
+          title: { display: true, text: 'GDP (£bn)' },
           ticks: { callback: v => v.toFixed(0) }
         },
         y2: {
           type: 'linear',
           position: 'right',
+          title: { display: true, text: 'Unemployment (%)' },
           ticks: { callback: v => v.toFixed(1) + '%' }
         }
       }
@@ -816,26 +782,45 @@ function initCharts() {
       responsive: true,
       plugins: {
         legend: { display: false }
+      },
+      scales: {
+        y: {
+          title: { display: true, text: '£bn per year' }
+        }
       }
     }
   });
 
-  taxChart = new Chart(taxCtx, {
-    type: 'pie',
+  fiscalChart = new Chart(fiscalCtx, {
+    type: 'bar',
     data: {
-      labels: [],
+      labels: ['Deficit (% of GDP)', 'Debt (% of GDP)'],
       datasets: [
-        { data: [] }
+        {
+          label: 'Your budget',
+          data: [0, 0],
+          borderWidth: 1
+        },
+        {
+          label: 'Baseline',
+          data: [BASELINE.realGDPGrowth * 100, BASELINE.debtToGDP * 100], // not perfect but gives context
+          borderWidth: 1
+        }
       ]
     },
     options: {
-      responsive: true
+      responsive: true,
+      scales: {
+        y: {
+          title: { display: true, text: '% of GDP' },
+          ticks: { callback: v => v.toFixed(0) + '%' }
+        }
+      }
     }
   });
 }
 
 function updateCharts(r) {
-  // Macro chart
   macroChart.data.labels = r.months;
   macroChart.data.datasets[0].data = r.gdpSeries;
   macroChart.data.datasets[1].data = r.unempSeries;
@@ -843,32 +828,30 @@ function updateCharts(r) {
   macroChart.data.datasets[3].data = r.altUnempSeries || [];
   macroChart.update();
 
-  // Spend chart
   const bd = r.spend.breakdown;
   const labels = ['Health', 'Education', 'Defence', 'Pensions', 'Welfare', 'Transport',
     'Housing', 'Environment', 'Foreign aid', 'Infrastructure', 'Debt interest', 'Other'];
   const values = [
     bd.health, bd.education, bd.defence, bd.pensions, bd.welfare, bd.transport,
     bd.housing, bd.environment, bd.foreignAid, bd.infrastructure, bd.debtInterest, bd.other
-  ].map(v => v / 1); // already bn
+  ];
 
   spendChart.data.labels = labels;
   spendChart.data.datasets[0].data = values;
   spendChart.update();
 
-  // Tax chart
-  const t = r.tax.breakdown;
-  const taxLabels = ['Income', 'NICs', 'VAT', 'Corporation', 'Other indirect',
-    'Capital gains', 'Inheritance', 'Fuel', 'Alcohol & tobacco', 'Stamp duty',
-    'Council tax', 'Wealth tax'];
-  const taxValues = [
-    t.incomeTax, t.nicTax, t.vatTax, t.corpTax, t.otherIndirect, t.cgtTax, t.ihtTax,
-    t.fuelTax, t.alcoholTax, t.stampTax, t.councilTax, t.wealthTaxRevenue
+  fiscalChart.data.datasets[0].data = [
+    r.deficitToGDP * 100,
+    r.debtToGDP * 100
   ];
-  taxChart.data.labels = taxLabels;
-  taxChart.data.datasets[0].data = taxValues;
-  taxChart.update();
+  fiscalChart.data.datasets[1].data = [
+    BASELINE.realGDPGrowth * 100, // used as a "target-ish" for deficit line; you can tweak
+    BASELINE.debtToGDP * 100
+  ];
+  fiscalChart.update();
 }
+
+// ====== ADVANCED INDICATORS UI ======
 
 function updateIndicators(r) {
   const I = r.indicators;
@@ -876,7 +859,7 @@ function updateIndicators(r) {
   $('business_formation_outcome').textContent = I.businessFormationIndex.toFixed(0);
   $('fdi_outcome').textContent = I.fdiIndex.toFixed(0);
   $('startup_outcome').textContent = I.startupIndex.toFixed(0);
-  $('nondom_outcome').textContent = I.nonDomFlow.toFixed(1) + ' (index)';
+  $('nondom_outcome').textContent = I.nonDomFlow.toFixed(1);
 
   $('poverty_outcome').textContent = fmtPct(I.povertyRate);
   $('gini_outcome').textContent = I.gini.toFixed(2);
@@ -893,7 +876,6 @@ function updateIndicators(r) {
   $('energy_price_outcome').textContent = I.energyPriceIndex.toFixed(0);
   $('air_quality_outcome').textContent = I.airQualityIndex.toFixed(0);
 
-  $('house_price_outcome').textContent = fmtRate(I.housePriceGrowth);
   $('rent_afford_outcome').textContent = (I.rentAffordability * 100).toFixed(1) + '% of income';
   $('housing_supply_outcome').textContent = I.housingSupplyIndex.toFixed(0);
   $('fuel_poverty_outcome').textContent = fmtPct(I.fuelPovertyRate);
@@ -904,54 +886,58 @@ function updateIndicators(r) {
   $('brain_drain_outcome').textContent = (I.brainDrainRisk * 100).toFixed(0) + '%';
 }
 
+// ====== TEXT SUMMARY ======
+
 function updateTextSummary(r) {
-  const dir = x => x > 0 ? 'increase' : (x < 0 ? 'fall' : 'remain broadly flat');
+  const dir = x => x > 0.002 ? 'increase' : (x < -0.002 ? 'fall' : 'stay roughly the same');
+
   const gdpDir = dir(r.gdpGrowth - BASELINE.realGDPGrowth);
   const unempDir = dir(r.unemployment - BASELINE.unemployment);
   const inflDir = dir(r.inflation - BASELINE.inflation);
 
   const stress = [];
-  if (r.debtToGDP > BASELINE.debtToGDP + 0.03) stress.push('rising debt burden');
-  if (r.indicators.unrestRisk > 0.5) stress.push('heightened risk of public unrest');
-  if (r.indicators.brainDrainRisk > 0.45) stress.push('risk of high earners and skilled workers leaving');
+  if (r.debtToGDP > BASELINE.debtToGDP + 0.03) stress.push('rising debt as a share of the economy');
+  if (r.indicators.unrestRisk > 0.5) stress.push('higher risk of protests or strikes');
+  if (r.indicators.brainDrainRisk > 0.45) stress.push('risk of high earners and skilled workers moving abroad');
   if (r.indicators.emissionsChange > 0) stress.push('higher carbon emissions');
-  if (r.indicators.fuelPovertyRate > 0.18) stress.push('worsening fuel poverty');
+  if (r.indicators.fuelPovertyRate > 0.18) stress.push('more households in fuel poverty');
 
   const positives = [];
   if (r.indicators.nhsWaitIndex < 95) positives.push('shorter NHS waiting times');
-  if (r.indicators.povertyRate < 0.17) positives.push('lower poverty rates');
-  if (r.indicators.tradeBalance > -0.01) positives.push('an improved trade balance');
-  if (r.indicators.housingSupplyIndex > 110) positives.push('stronger housing supply growth');
+  if (r.indicators.povertyRate < 0.17) positives.push('lower poverty');
+  if (r.indicators.tradeBalance > -0.01) positives.push('a better trade balance');
+  if (r.indicators.housingSupplyIndex > 110) positives.push('more new homes being built');
 
   const lines = [];
   lines.push(
-    `Your budget implies real GDP growth of ${fmtRate(r.gdpGrowth)}, with unemployment at ${fmtRate(r.unemployment)} `
-    + `and inflation around ${fmtRate(r.inflation)} over the next 12 months. Compared with the baseline, GDP is expected to ${gdpDir}, `
-    + `while joblessness will ${unempDir} and price pressures will ${inflDir}.`
+    `Your budget leads to real GDP growth of ${fmtRate(r.gdpGrowth)}, `
+    + `with unemployment around ${fmtRate(r.unemployment)} and inflation at about ${fmtRate(r.inflation)}. `
+    + `Compared with the baseline, output is expected to ${gdpDir}, jobs will ${unempDir}, `
+    + `and price pressures will ${inflDir}.`
   );
   lines.push(
-    `On the public finances, the deficit is projected at ${fmtPct(r.deficitToGDP)} of GDP and debt at `
-    + `${fmtPct(r.debtToGDP)} after one year.`
+    `On the public finances, the deficit is about ${fmtPct(r.deficitToGDP)} of GDP `
+    + `and debt ends the year at around ${fmtPct(r.debtToGDP)} of GDP.`
   );
 
   if (positives.length) {
-    lines.push('Key strengths of this package include ' + positives.join(', ') + '.');
+    lines.push('Upsides include ' + positives.join(', ') + '.');
   }
   if (stress.length) {
-    lines.push('Risks to watch include ' + stress.join(', ') + '.');
+    lines.push('Risks to watch: ' + stress.join(', ') + '.');
   }
 
-  lines.push(`This scenario also assumes the following external event: ${r.shock.name}.`);
+  lines.push(`This year’s external scenario is: ${r.shock.name}.`);
 
   $('text_summary').textContent = lines.join(' ');
 }
 
-// ====== SAVE / LOAD / COMPARE SCENARIOS ======
+// ====== SCENARIOS (SAVE / LOAD / COMPARE) ======
 
 function saveScenario() {
   const name = $('scenario_name').value.trim();
   if (!name) {
-    alert('Please enter a scenario name before saving.');
+    alert('Please enter a scenario name.');
     return;
   }
   const policy = getPolicyFromUI();
@@ -973,18 +959,19 @@ function loadScenariosFromStorage() {
     select.appendChild(opt);
   });
 }
+loadScenariosFromStorage();
 
 function applyPolicyToUI(policy) {
   if (!policy) return;
-  $('income_basic_rate').value = policy.incomeBasic * 1;
+  $('income_basic_rate').value = policy.incomeBasic;
   $('income_basic_rate_num').value = policy.incomeBasic;
-  $('income_higher_rate').value = policy.incomeHigher * 1;
+  $('income_higher_rate').value = policy.incomeHigher;
   $('income_higher_rate_num').value = policy.incomeHigher;
-  $('income_additional_rate').value = policy.incomeAdditional * 1;
+  $('income_additional_rate').value = policy.incomeAdditional;
   $('income_additional_rate_num').value = policy.incomeAdditional;
-  $('corp_rate').value = policy.corpRate * 1;
+  $('corp_rate').value = policy.corpRate;
   $('corp_rate_num').value = policy.corpRate;
-  $('vat_rate').value = policy.vatRate * 1;
+  $('vat_rate').value = policy.vatRate;
   $('vat_rate_num').value = policy.vatRate;
 
   $('nic_change').value = policy.nicChange * 100;
@@ -1042,23 +1029,14 @@ function loadScenario(asComparison) {
   if (!policy) return;
 
   if (asComparison) {
-    // Temporarily run simulation with this policy to capture macro series for comparison
     const currentPolicy = getPolicyFromUI();
     applyPolicyToUI(policy);
-    const backupComparison = comparisonResults;
-    const backupLast = lastResults;
-
-    // run simulation and save key comparison metrics
     runSimulation();
     comparisonResults = {
       gdpGrowth: lastResults.gdpGrowth,
       unemployment: lastResults.unemployment
     };
-
-    // Restore main policy and lastResults, then re-run
     applyPolicyToUI(currentPolicy);
-    lastResults = backupLast || null;
-    comparisonResults = comparisonResults || backupComparison;
     runSimulation();
   } else {
     applyPolicyToUI(policy);
