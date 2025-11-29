@@ -1,0 +1,352 @@
+:root {
+  --bg: #050816;
+  --bg-elevated: #111827;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56, 189, 248, 0.15);
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --danger: #f97373;
+  --border: #1f2933;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --shadow-soft: 0 16px 40px rgba(0,0,0,0.45);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #0f172a 0, #020617 60%);
+  color: var(--text);
+}
+
+header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: linear-gradient(to bottom, rgba(15,23,42,0.96), rgba(15,23,42,0.85));
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+header p {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+main {
+  padding: 1.5rem;
+  max-width: 1300px;
+  margin: 0 auto 3rem;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+/* Controls */
+
+#controls {
+  background: rgba(15,23,42,0.9);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.control-panel {
+  background: rgba(15,23,42,0.9);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 0.75rem 0.9rem 1rem;
+}
+
+.control-panel h3 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
+.panel-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+fieldset {
+  border-radius: 10px;
+  border: 1px solid rgba(55,65,81,0.9);
+  padding: 0.5rem 0.7rem 0.7rem;
+  margin-bottom: 0.7rem;
+}
+
+legend {
+  padding: 0 0.3rem;
+  font-size: 0.9rem;
+  color: #cbd5f5;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1.3fr 2fr 0.9fr;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.35rem 0;
+}
+
+.field-row label {
+  font-size: 0.82rem;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+input[type="number"],
+input[type="text"],
+select {
+  width: 100%;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(15,23,42,0.9);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-left: 4px;
+  font-size: 0.7rem;
+  cursor: help;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+/* Actions */
+
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.scenario-controls,
+.run-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.scenario-controls label {
+  font-size: 0.8rem;
+}
+
+button {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(15,23,42,0.95);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.15s, transform 0.05s, border-color 0.15s;
+}
+
+button:hover {
+  background: rgba(30,64,175,0.9);
+  border-color: rgba(59,130,246,0.8);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  border-color: transparent;
+  color: #0b1120;
+}
+
+/* Results */
+
+#results {
+  margin-top: 1.5rem;
+}
+
+#summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.card {
+  background: rgba(15,23,42,0.95);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 0.9rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+}
+
+.metric {
+  font-size: 0.9rem;
+  margin: 0.15rem 0;
+}
+
+.metric-sub {
+  font-size: 0.8rem;
+  margin: 0.15rem 0;
+  color: var(--muted);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-card {
+  background: rgba(15,23,42,0.95);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 0.8rem 0.9rem 1rem;
+}
+
+.chart-card h3 {
+  font-size: 0.95rem;
+  margin-top: 0;
+}
+
+/* Indicators */
+
+#detailed-indicators {
+  background: rgba(15,23,42,0.95);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.indicator-grid h4 {
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+}
+
+.indicator-grid ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.indicator-grid li {
+  margin: 0.15rem 0;
+}
+
+.shock-summary {
+  margin-top: 0.8rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(55,65,81,0.9);
+  font-size: 0.85rem;
+}
+
+.shock-summary h4 {
+  margin: 0 0 0.3rem;
+}
+
+.text-report {
+  margin-top: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed rgba(55,65,81,0.8);
+}
+
+.text-report p {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+/* Assumptions */
+
+#assumptions {
+  margin-top: 1.5rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  background: rgba(15,23,42,0.85);
+  padding: 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+/* Footer */
+
+footer {
+  text-align: center;
+  padding: 0.75rem 1rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Responsive tweaks */
+
+@media (max-width: 720px) {
+  header {
+    position: static;
+  }
+  main {
+    padding: 1rem;
+  }
+  .field-row {
+    grid-template-columns: 1.2fr 1.8fr 0.9fr;
+  }
+}
