@@ -2,456 +2,462 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>UK Budget Simulator v2.0 – Budget Benchmark</title>
+  <title>UK Budget Command Console – Budget Benchmark</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles.css">
-  <!-- Chart.js for graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="light-mode">
-<header class="app-header">
-  <div class="app-header-left">
-    <h1>UK Budget Simulator v2.0</h1>
-    <p>Create a UK budget and see how it affects growth, jobs, debt, and inequality over a full term.</p>
-  </div>
-  <div class="app-header-right">
-    <label class="theme-toggle">
-      <span>Light</span>
-      <input type="checkbox" id="theme_toggle">
-      <span>Dark</span>
-    </label>
-    <div class="horizon-toggle">
-      <label for="horizon_years">Horizon</label>
-      <select id="horizon_years">
-        <option value="1">1 year</option>
-        <option value="3">3 years</option>
-        <option value="5" selected>5 years (full term)</option>
-      </select>
+<body class="command-ui">
+  <header class="command-header">
+    <div>
+      <p class="eyebrow">Budget Launch Console</p>
+      <h1>UK Budget Command</h1>
+      <p class="lede">Dial in fiscal and structural choices, then fire the simulation to see how your term plays out.</p>
     </div>
-    <div class="shock-toggle">
-      <label for="shocks_enabled">
-        External shocks
-        <span class="help" title="When off, the model becomes deterministic (no random global shocks).">?</span>
-      </label>
-      <input type="checkbox" id="shocks_enabled" checked>
+    <div class="status-ribbon">
+      <div class="status-chip">
+        <label for="horizon_years">Horizon</label>
+        <select id="horizon_years">
+          <option value="1">1 year</option>
+          <option value="3">3 years</option>
+          <option value="5" selected>5 years (full term)</option>
+        </select>
+      </div>
+      <div class="status-chip">
+        <label for="shocks_enabled">External shocks</label>
+        <input type="checkbox" id="shocks_enabled" checked>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<main class="layout">
-  <!-- LEFT: WIZARD / CONTROLS -->
-  <section class="controls-column">
-    <nav class="wizard-tabs" aria-label="Budget steps">
-      <button class="wizard-tab active" data-step="revenue">1. Revenue strategy</button>
-      <button class="wizard-tab" data-step="spending">2. Spending priorities</button>
-      <button class="wizard-tab" data-step="structural">3. Structural reforms</button>
-    </nav>
-
-    <!-- Presets -->
-    <section class="preset-row">
-      <label for="preset_select">Load preset:</label>
-      <select id="preset_select">
-        <option value="">-- choose a preset --</option>
-        <option value="baseline">Baseline (status quo)</option>
-        <option value="austerity">Austerity Budget</option>
-        <option value="high_tax_high_spend">High Tax / High Spend</option>
-        <option value="business_friendly">Business-Friendly</option>
-        <option value="green_push">Green Transition Push</option>
-        <option value="libertarian">Libertarian Dream</option>
-      </select>
-      <button id="apply_preset">Apply</button>
-    </section>
-
-    <!-- Step 1: Revenue -->
-    <section class="wizard-step" id="step_revenue">
-      <h2>1. Revenue strategy</h2>
-      <p class="step-intro">
-        Choose how you want to raise money: who pays tax, and how much.  
-        The mini-dashboard on the right updates instantly as you move sliders.
-      </p>
-
-      <div class="control-panel">
-        <h3>Income tax</h3>
-        <div class="field-row">
-          <label for="income_basic_rate">
-            Basic rate (%)
-            <span class="help" title="Tax on income within the basic-rate band. Raising this brings in more money but can reduce consumer spending.">?</span>
-          </label>
-          <input type="range" id="income_basic_rate" min="10" max="30" step="1">
-          <input type="number" id="income_basic_rate_num" min="10" max="30" step="1">
+  <main class="command-grid">
+    <section class="controls-stack">
+      <div class="console-card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">Module 1</p>
+            <h2>Revenue Arsenal</h2>
+            <p class="microcopy">Aim taxes at the economy. All sliders sync with the numeric pads.</p>
+          </div>
+          <div class="accent-bar"></div>
         </div>
-        <div class="field-row">
-          <label for="income_higher_rate">
-            Higher rate (%)
-            <span class="help" title="Tax on middle-to-higher earners. Higher rates can increase revenue but risk discouraging investment and labour supply.">?</span>
-          </label>
-          <input type="range" id="income_higher_rate" min="30" max="55" step="1">
-          <input type="number" id="income_higher_rate_num" min="30" max="55" step="1">
-        </div>
-        <div class="field-row">
-          <label for="income_additional_rate">
-            Additional rate (%)
-            <span class="help" title="Top rate on very high incomes. Very high rates risk a 'brain drain' or tax avoidance.">?</span>
-          </label>
-          <input type="range" id="income_additional_rate" min="35" max="60" step="1">
-          <input type="number" id="income_additional_rate_num" min="35" max="60" step="1">
+        <div class="field-grid">
+          <div class="field-block">
+            <h3>Income tax payload</h3>
+            <div class="field-row">
+              <label for="income_basic_rate">Basic rate (%)</label>
+              <div class="field-inputs">
+                <input type="range" id="income_basic_rate" min="10" max="30" step="1">
+                <input type="number" id="income_basic_rate_num" min="10" max="30" step="1">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="income_higher_rate">Higher rate (%)</label>
+              <div class="field-inputs">
+                <input type="range" id="income_higher_rate" min="30" max="55" step="1">
+                <input type="number" id="income_higher_rate_num" min="30" max="55" step="1">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="income_additional_rate">Additional rate (%)</label>
+              <div class="field-inputs">
+                <input type="range" id="income_additional_rate" min="35" max="60" step="1">
+                <input type="number" id="income_additional_rate_num" min="35" max="60" step="1">
+              </div>
+            </div>
+          </div>
+          <div class="field-block">
+            <h3>Corporate & consumption</h3>
+            <div class="field-row">
+              <label for="corp_rate">Corporation tax (%)</label>
+              <div class="field-inputs">
+                <input type="range" id="corp_rate" min="15" max="35" step="1">
+                <input type="number" id="corp_rate_num" min="15" max="35" step="1">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="vat_rate">VAT standard rate (%)</label>
+              <div class="field-inputs">
+                <input type="range" id="vat_rate" min="10" max="25" step="1">
+                <input type="number" id="vat_rate_num" min="10" max="25" step="1">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="nic_change">National Insurance (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="nic_change" min="-20" max="20" step="1">
+                <input type="number" id="nic_change_num" min="-20" max="20" step="1">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="cgt_change">Capital gains (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="cgt_change" min="-40" max="40" step="5">
+                <input type="number" id="cgt_change_num" min="-40" max="40" step="5">
+              </div>
+            </div>
+          </div>
+          <div class="field-block">
+            <h3>Wealth & indirect</h3>
+            <div class="field-row">
+              <label for="iht_change">Inheritance (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="iht_change" min="-40" max="40" step="5">
+                <input type="number" id="iht_change_num" min="-40" max="40" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="wealth_tax_rate">Wealth tax (% on fortunes)</label>
+              <div class="field-inputs">
+                <input type="range" id="wealth_tax_rate" min="0" max="3" step="0.1">
+                <input type="number" id="wealth_tax_rate_num" min="0" max="3" step="0.1">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="fuel_duty_change">Fuel duties (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="fuel_duty_change" min="-50" max="50" step="5">
+                <input type="number" id="fuel_duty_change_num" min="-50" max="50" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="alcohol_duty_change">Alcohol & tobacco (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="alcohol_duty_change" min="-50" max="50" step="5">
+                <input type="number" id="alcohol_duty_change_num" min="-50" max="50" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="stamp_duty_change">Stamp duty (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="stamp_duty_change" min="-50" max="50" step="5">
+                <input type="number" id="stamp_duty_change_num" min="-50" max="50" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="council_tax_change">Council tax (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="council_tax_change" min="-20" max="40" step="5">
+                <input type="number" id="council_tax_change_num" min="-20" max="40" step="5">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="control-panel">
-        <h3>Other taxes</h3>
-        <div class="field-row">
-          <label for="corp_rate">
-            Corporation tax (%)
-            <span class="help" title="Tax on company profits. Higher rates raise revenue but can reduce investment and FDI.">?</span>
-          </label>
-          <input type="range" id="corp_rate" min="15" max="35" step="1">
-          <input type="number" id="corp_rate_num" min="15" max="35" step="1">
+      <div class="console-card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">Module 2</p>
+            <h2>Spending Payload</h2>
+            <p class="microcopy">Push more thrust into services or trim mass for lighter debt.</p>
+          </div>
+          <div class="accent-bar"></div>
         </div>
-        <div class="field-row">
-          <label for="vat_rate">
-            VAT standard rate (%)
-            <span class="help" title="Value Added Tax on most goods and services. Regressive: hits lower-income households proportionally more.">?</span>
-          </label>
-          <input type="range" id="vat_rate" min="10" max="25" step="1">
-          <input type="number" id="vat_rate_num" min="10" max="25" step="1">
-        </div>
-        <div class="field-row">
-          <label for="nic_change">
-            National Insurance (% change)
-            <span class="help" title="Employee and employer contributions that fund parts of welfare and pensions.">?</span>
-          </label>
-          <input type="range" id="nic_change" min="-20" max="20" step="1">
-          <input type="number" id="nic_change_num" min="-20" max="20" step="1">
-        </div>
-        <div class="field-row">
-          <label for="cgt_change">
-            Capital gains tax (% change)
-            <span class="help" title="Tax on profits from assets. Higher CGT can reduce inequality but may discourage investment.">?</span>
-          </label>
-          <input type="range" id="cgt_change" min="-40" max="40" step="5">
-          <input type="number" id="cgt_change_num" min="-40" max="40" step="5">
-        </div>
-        <div class="field-row">
-          <label for="iht_change">
-            Inheritance tax (% change)
-          </label>
-          <input type="range" id="iht_change" min="-40" max="40" step="5">
-          <input type="number" id="iht_change_num" min="-40" max="40" step="5">
-        </div>
-        <div class="field-row">
-          <label for="wealth_tax_rate">
-            Wealth tax (% on very large fortunes)
-          </label>
-          <input type="range" id="wealth_tax_rate" min="0" max="3" step="0.1">
-          <input type="number" id="wealth_tax_rate_num" min="0" max="3" step="0.1">
-        </div>
-      </div>
-
-      <div class="control-panel">
-        <h3>Indirect & property taxes (% change)</h3>
-        <div class="field-row">
-          <label for="fuel_duty_change">Fuel duties</label>
-          <input type="range" id="fuel_duty_change" min="-50" max="50" step="5">
-          <input type="number" id="fuel_duty_change_num" min="-50" max="50" step="5">
-        </div>
-        <div class="field-row">
-          <label for="alcohol_duty_change">Alcohol & tobacco</label>
-          <input type="range" id="alcohol_duty_change" min="-50" max="50" step="5">
-          <input type="number" id="alcohol_duty_change_num" min="-50" max="50" step="5">
-        </div>
-        <div class="field-row">
-          <label for="stamp_duty_change">Stamp duty</label>
-          <input type="range" id="stamp_duty_change" min="-50" max="50" step="5">
-          <input type="number" id="stamp_duty_change_num" min="-50" max="50" step="5">
-        </div>
-        <div class="field-row">
-          <label for="council_tax_change">Council tax</label>
-          <input type="range" id="council_tax_change" min="-20" max="40" step="5">
-          <input type="number" id="council_tax_change_num" min="-20" max="40" step="5">
-        </div>
-      </div>
-    </section>
-
-    <!-- Step 2: Spending -->
-    <section class="wizard-step hidden" id="step_spending">
-      <h2>2. Spending priorities</h2>
-      <p class="step-intro">
-        Decide where to allocate money. Numbers are % changes versus a realistic UK baseline.
-      </p>
-
-      <div class="control-panel">
-        <h3>Current services (% change vs baseline)</h3>
-        <div class="field-row">
-          <label for="health_spend_change">Health / NHS</label>
-          <input type="range" id="health_spend_change" min="-10" max="30" step="2">
-          <input type="number" id="health_spend_change_num" min="-10" max="30" step="2">
-        </div>
-        <div class="field-row">
-          <label for="education_spend_change">Education</label>
-          <input type="range" id="education_spend_change" min="-10" max="25" step="2">
-          <input type="number" id="education_spend_change_num" min="-10" max="25" step="2">
-        </div>
-        <div class="field-row">
-          <label for="defence_spend_change">Defence</label>
-          <input type="range" id="defence_spend_change" min="-10" max="30" step="2">
-          <input type="number" id="defence_spend_change_num" min="-10" max="30" step="2">
-        </div>
-        <div class="field-row">
-          <label for="pensions_spend_change">Pensions</label>
-          <input type="range" id="pensions_spend_change" min="-10" max="20" step="2">
-          <input type="number" id="pensions_spend_change_num" min="-10" max="20" step="2">
-        </div>
-        <div class="field-row">
-          <label for="welfare_spend_change">Working-age welfare</label>
-          <input type="range" id="welfare_spend_change" min="-20" max="30" step="2">
-          <input type="number" id="welfare_spend_change_num" min="-20" max="30" step="2">
+        <div class="field-grid">
+          <div class="field-block">
+            <h3>Core services (% vs baseline)</h3>
+            <div class="field-row">
+              <label for="health_spend_change">Health / NHS</label>
+              <div class="field-inputs">
+                <input type="range" id="health_spend_change" min="-10" max="30" step="2">
+                <input type="number" id="health_spend_change_num" min="-10" max="30" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="education_spend_change">Education</label>
+              <div class="field-inputs">
+                <input type="range" id="education_spend_change" min="-10" max="25" step="2">
+                <input type="number" id="education_spend_change_num" min="-10" max="25" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="defence_spend_change">Defence</label>
+              <div class="field-inputs">
+                <input type="range" id="defence_spend_change" min="-10" max="30" step="2">
+                <input type="number" id="defence_spend_change_num" min="-10" max="30" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="pensions_spend_change">Pensions</label>
+              <div class="field-inputs">
+                <input type="range" id="pensions_spend_change" min="-10" max="20" step="2">
+                <input type="number" id="pensions_spend_change_num" min="-10" max="20" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="welfare_spend_change">Working-age welfare</label>
+              <div class="field-inputs">
+                <input type="range" id="welfare_spend_change" min="-20" max="30" step="2">
+                <input type="number" id="welfare_spend_change_num" min="-20" max="30" step="2">
+              </div>
+            </div>
+          </div>
+          <div class="field-block">
+            <h3>Growth & climate (% vs baseline)</h3>
+            <div class="field-row">
+              <label for="transport_spend_change">Transport</label>
+              <div class="field-inputs">
+                <input type="range" id="transport_spend_change" min="-20" max="40" step="2">
+                <input type="number" id="transport_spend_change_num" min="-20" max="40" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="housing_spend_change">Housing & planning</label>
+              <div class="field-inputs">
+                <input type="range" id="housing_spend_change" min="-20" max="40" step="2">
+                <input type="number" id="housing_spend_change_num" min="-20" max="40" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="environment_spend_change">Environment & climate</label>
+              <div class="field-inputs">
+                <input type="range" id="environment_spend_change" min="-20" max="60" step="2">
+                <input type="number" id="environment_spend_change_num" min="-20" max="60" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="infrastructure_spend_change">Infrastructure</label>
+              <div class="field-inputs">
+                <input type="range" id="infrastructure_spend_change" min="-20" max="60" step="2">
+                <input type="number" id="infrastructure_spend_change_num" min="-20" max="60" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="foreign_aid_spend_change">Foreign aid</label>
+              <div class="field-inputs">
+                <input type="range" id="foreign_aid_spend_change" min="-50" max="50" step="5">
+                <input type="number" id="foreign_aid_spend_change_num" min="-50" max="50" step="5">
+              </div>
+            </div>
+          </div>
+          <div class="field-block">
+            <h3>Borrowing discipline</h3>
+            <div class="field-row">
+              <label for="target_deficit">Deficit target (% of GDP)</label>
+              <div class="field-inputs">
+                <input type="range" id="target_deficit" min="-1" max="8" step="0.5">
+                <input type="number" id="target_deficit_num" min="-1" max="8" step="0.5">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="control-panel">
-        <h3>Investment & climate</h3>
-        <div class="field-row">
-          <label for="transport_spend_change">Transport</label>
-          <input type="range" id="transport_spend_change" min="-20" max="40" step="2">
-          <input type="number" id="transport_spend_change_num" min="-20" max="40" step="2">
+      <div class="console-card">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">Module 3</p>
+            <h2>Systems & Protocols</h2>
+            <p class="microcopy">Labour, trade, and climate toggles that shape long-run thrust.</p>
+          </div>
+          <div class="accent-bar"></div>
         </div>
-        <div class="field-row">
-          <label for="housing_spend_change">Housing & planning</label>
-          <input type="range" id="housing_spend_change" min="-20" max="40" step="2">
-          <input type="number" id="housing_spend_change_num" min="-20" max="40" step="2">
-        </div>
-        <div class="field-row">
-          <label for="environment_spend_change">Environment & climate</label>
-          <input type="range" id="environment_spend_change" min="-20" max="60" step="2">
-          <input type="number" id="environment_spend_change_num" min="-20" max="60" step="2">
-        </div>
-        <div class="field-row">
-          <label for="infrastructure_spend_change">Infrastructure (roads, rail, broadband)</label>
-          <input type="range" id="infrastructure_spend_change" min="-20" max="60" step="2">
-          <input type="number" id="infrastructure_spend_change_num" min="-20" max="60" step="2">
-        </div>
-        <div class="field-row">
-          <label for="foreign_aid_spend_change">Foreign aid</label>
-          <input type="range" id="foreign_aid_spend_change" min="-50" max="50" step="5">
-          <input type="number" id="foreign_aid_spend_change_num" min="-50" max="50" step="5">
-        </div>
-      </div>
-
-      <div class="control-panel">
-        <h3>Borrowing target</h3>
-        <div class="field-row">
-          <label for="target_deficit">
-            Deficit target (% of GDP)
-            <span class="help" title="The model gently adjusts 'other spending' so your deficit moves toward this target.">?</span>
-          </label>
-          <input type="range" id="target_deficit" min="-1" max="8" step="0.5">
-          <input type="number" id="target_deficit_num" min="-1" max="8" step="0.5">
-        </div>
-      </div>
-    </section>
-
-    <!-- Step 3: Structural -->
-    <section class="wizard-step hidden" id="step_structural">
-      <h2>3. Structural reforms</h2>
-      <p class="step-intro">
-        Long-run choices: labour market, business regulation, trade, and climate policy.
-      </p>
-
-      <div class="control-panel">
-        <h3>Labour market & business</h3>
-        <div class="field-row">
-          <label for="min_wage_change">
-            Minimum wage (% change)
-            <span class="help" title="Small rises can lift incomes; very big jumps risk pricing some workers out of jobs.">?</span>
-          </label>
-          <input type="range" id="min_wage_change" min="-10" max="40" step="2">
-          <input type="number" id="min_wage_change_num" min="-10" max="40" step="2">
-        </div>
-        <div class="field-row">
-          <label for="immigration_level">
-            Net migration stance (0 = closed, 100 = open)
-          </label>
-          <input type="range" id="immigration_level" min="0" max="100" step="5">
-          <input type="number" id="immigration_level_num" min="0" max="100" step="5">
-        </div>
-        <div class="field-row">
-          <label for="business_incentives">
-            Business incentives (tax breaks, R&amp;D support)
-          </label>
-          <input type="range" id="business_incentives" min="0" max="100" step="5">
-          <input type="number" id="business_incentives_num" min="0" max="100" step="5">
-        </div>
-        <div class="field-row">
-          <label for="trade_openness">
-            Trade openness / tariffs
-          </label>
-          <input type="range" id="trade_openness" min="0" max="100" step="5">
-          <input type="number" id="trade_openness_num" min="0" max="100" step="5">
+        <div class="field-grid">
+          <div class="field-block">
+            <h3>Labour & business</h3>
+            <div class="field-row">
+              <label for="min_wage_change">Minimum wage (% change)</label>
+              <div class="field-inputs">
+                <input type="range" id="min_wage_change" min="-10" max="40" step="2">
+                <input type="number" id="min_wage_change_num" min="-10" max="40" step="2">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="immigration_level">Net migration stance (0-100)</label>
+              <div class="field-inputs">
+                <input type="range" id="immigration_level" min="0" max="100" step="5">
+                <input type="number" id="immigration_level_num" min="0" max="100" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="business_incentives">Business incentives</label>
+              <div class="field-inputs">
+                <input type="range" id="business_incentives" min="0" max="100" step="5">
+                <input type="number" id="business_incentives_num" min="0" max="100" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="trade_openness">Trade openness / tariffs</label>
+              <div class="field-inputs">
+                <input type="range" id="trade_openness" min="0" max="100" step="5">
+                <input type="number" id="trade_openness_num" min="0" max="100" step="5">
+              </div>
+            </div>
+          </div>
+          <div class="field-block">
+            <h3>Climate & regulation</h3>
+            <div class="field-row">
+              <label for="carbon_tax_level">Carbon tax / green levies</label>
+              <div class="field-inputs">
+                <input type="range" id="carbon_tax_level" min="0" max="100" step="5">
+                <input type="number" id="carbon_tax_level_num" min="0" max="100" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="regulation_burden">Regulatory burden (0-100)</label>
+              <div class="field-inputs">
+                <input type="range" id="regulation_burden" min="0" max="100" step="5">
+                <input type="number" id="regulation_burden_num" min="0" max="100" step="5">
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="shock_intensity">Global shock intensity</label>
+              <div class="field-inputs">
+                <input type="range" id="shock_intensity" min="0" max="100" step="5">
+                <input type="number" id="shock_intensity_num" min="0" max="100" step="5">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="control-panel">
-        <h3>Climate & regulation</h3>
-        <div class="field-row">
-          <label for="carbon_tax_level">
-            Carbon tax / green levies
-          </label>
-          <input type="range" id="carbon_tax_level" min="0" max="100" step="5">
-          <input type="number" id="carbon_tax_level_num" min="0" max="100" step="5">
-        </div>
-        <div class="field-row">
-          <label for="regulation_burden">
-            Regulatory burden (0 = ultra-light, 100 = very heavy)
-          </label>
-          <input type="range" id="regulation_burden" min="0" max="100" step="5">
-          <input type="number" id="regulation_burden_num" min="0" max="100" step="5">
-        </div>
-      </div>
-
-      <div class="scenario-controls">
-        <h3>Save / compare scenario</h3>
-        <div class="scenario-row">
-          <label for="scenario_name">Scenario name</label>
-          <input type="text" id="scenario_name" placeholder="e.g. Green Growth Budget">
-          <button id="save_scenario">Save</button>
-        </div>
-        <div class="scenario-row">
-          <label for="load_scenario_select">Saved scenarios</label>
-          <select id="load_scenario_select">
-            <option value="">-- none --</option>
-          </select>
-          <button id="load_scenario">Load</button>
-          <button id="compare_scenario">Use as comparison</button>
-        </div>
-      </div>
-    </section>
-  </section>
-
-  <!-- RIGHT: DASHBOARD -->
-  <section class="dashboard-column">
-    <section class="mini-dashboard">
-      <div class="card">
-        <h3>Macro snapshot (final year)</h3>
-        <p class="metric">Real GDP growth: <span id="gdp_growth_outcome">–</span></p>
-        <p class="metric">Unemployment: <span id="unemployment_outcome">–</span></p>
-        <p class="metric">Inflation (CPI): <span id="inflation_outcome">–</span></p>
-      </div>
-      <div class="card">
-        <h3>Public finances</h3>
-        <p class="metric">Deficit: <span id="deficit_outcome">–</span> of GDP</p>
-        <p class="metric">Debt: <span id="debt_outcome">–</span> of GDP</p>
-        <p class="metric-sub">End of horizon GDP: <span id="gdp_level_outcome">–</span></p>
-      </div>
-      <div class="card">
-        <h3>Society & climate</h3>
-        <p class="metric">Poverty rate: <span id="poverty_outcome">–</span></p>
-        <p class="metric">Inequality (Gini): <span id="gini_outcome">–</span></p>
-        <p class="metric">CO₂ vs baseline: <span id="emissions_outcome">–</span></p>
-      </div>
-    </section>
-
-    <section class="charts-section">
-      <div class="chart-card">
-        <h3>GDP & unemployment over the term</h3>
-        <canvas id="macro_chart" aria-label="GDP and unemployment over time"></canvas>
-        <p class="chart-caption">Lines show your policy (solid) and comparison scenario (dashed, if set).</p>
-      </div>
-      <div class="chart-card">
-        <h3>Deficit & debt vs GDP</h3>
-        <canvas id="fiscal_chart" aria-label="Deficit and debt compared to GDP"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>Where the money goes (annual spending)</h3>
-        <canvas id="spend_chart" aria-label="Spending allocation by department"></canvas>
-      </div>
-    </section>
-
-    <section class="text-report">
-      <h3>Plain English summary</h3>
-      <p id="text_summary">Adjust any slider to see how your decisions change the story.</p>
-    </section>
-
-    <details id="advanced_block">
-      <summary>Advanced breakdown (NHS, housing, business, risk...)</summary>
-      <section class="advanced-grid">
+      <div class="fire-control">
         <div>
-          <h4>Business & investment</h4>
-          <ul>
-            <li>Business formation index: <span id="business_formation_outcome">–</span></li>
-            <li>FDI index: <span id="fdi_outcome">–</span></li>
-            <li>Startup ecosystem: <span id="startup_outcome">–</span></li>
-            <li>Non-dom net flow: <span id="nondom_outcome">–</span></li>
-          </ul>
+          <p class="eyebrow">Launch control</p>
+          <h3>Ready to fire the simulation?</h3>
+          <p class="microcopy">Lock in your settings, then press the illuminated button to run the term.</p>
         </div>
-        <div>
-          <h4>Health & education</h4>
-          <ul>
-            <li>NHS waiting time index: <span id="nhs_wait_outcome">–</span></li>
-            <li>Life expectancy (years): <span id="life_expectancy_outcome">–</span></li>
-            <li>School performance index: <span id="school_perf_outcome">–</span></li>
-            <li>Apprenticeship index: <span id="apprentice_outcome">–</span></li>
-          </ul>
+        <button id="run_simulation" class="cta-button">RUN SIMULATION</button>
+      </div>
+    </section>
+
+    <section class="telemetry-stack">
+      <div class="glow-panel">
+        <div class="telemetry-grid">
+          <div class="telemetry-card">
+            <h3>Macro snapshot</h3>
+            <p class="metric">Real GDP growth: <span id="gdp_growth_outcome">–</span></p>
+            <p class="metric">Unemployment: <span id="unemployment_outcome">–</span></p>
+            <p class="metric">Inflation (CPI): <span id="inflation_outcome">–</span></p>
+          </div>
+          <div class="telemetry-card">
+            <h3>Public finances</h3>
+            <p class="metric">Deficit: <span id="deficit_outcome">–</span> of GDP</p>
+            <p class="metric">Debt: <span id="debt_outcome">–</span> of GDP</p>
+            <p class="metric-sub">End of horizon GDP: <span id="gdp_level_outcome">–</span></p>
+          </div>
+          <div class="telemetry-card">
+            <h3>Society & climate</h3>
+            <p class="metric">Poverty rate: <span id="poverty_outcome">–</span></p>
+            <p class="metric">Inequality (Gini): <span id="gini_outcome">–</span></p>
+            <p class="metric">CO₂ vs baseline: <span id="emissions_outcome">–</span></p>
+          </div>
         </div>
-        <div>
-          <h4>Housing & cost of living</h4>
-          <ul>
-            <li>House price growth: <span id="house_price_outcome">–</span></li>
-            <li>Rent affordability: <span id="rent_afford_outcome">–</span></li>
-            <li>Housing supply index: <span id="housing_supply_outcome">–</span></li>
-            <li>Fuel poverty rate: <span id="fuel_poverty_outcome">–</span></li>
-          </ul>
+      </div>
+
+      <div class="chart-wall">
+        <div class="chart-card">
+          <div class="chart-heading">
+            <h3>Trajectory: GDP & unemployment</h3>
+            <span class="chart-chip">Time-series</span>
+          </div>
+          <canvas id="macro_chart" aria-label="GDP and unemployment over time"></canvas>
+          <p class="chart-caption">Solid lines show your scenario. Toggle horizon to change run length.</p>
         </div>
-        <div>
-          <h4>Social & inequality</h4>
-          <ul>
-            <li>Homelessness index: <span id="homeless_outcome">–</span></li>
-            <li>Food bank usage index: <span id="foodbank_outcome">–</span></li>
-            <li>Public unrest risk: <span id="unrest_outcome">–</span></li>
-            <li>Brain drain risk: <span id="brain_drain_outcome">–</span></li>
-          </ul>
+        <div class="chart-card">
+          <div class="chart-heading">
+            <h3>Deficit & debt vs GDP</h3>
+            <span class="chart-chip">Fiscal</span>
+          </div>
+          <canvas id="fiscal_chart" aria-label="Deficit and debt compared to GDP"></canvas>
         </div>
-        <div>
-          <h4>Environment & energy</h4>
-          <ul>
-            <li>Renewables share: <span id="renewables_outcome">–</span></li>
-            <li>Energy price index: <span id="energy_price_outcome">–</span></li>
-            <li>Air quality index: <span id="air_quality_outcome">–</span></li>
-          </ul>
+        <div class="chart-card">
+          <div class="chart-heading">
+            <h3>Annual spend allocation</h3>
+            <span class="chart-chip">Breakdown</span>
+          </div>
+          <canvas id="spend_chart" aria-label="Spending allocation by department"></canvas>
         </div>
-        <div>
-          <h4>International & tourism</h4>
-          <ul>
-            <li>Trade balance (% of GDP): <span id="trade_balance_outcome">–</span></li>
-            <li>Tourism flows index: <span id="tourism_outcome">–</span></li>
-            <li>Random event this term: <span id="shock_short">–</span></li>
-          </ul>
+      </div>
+
+      <div class="glow-panel text-panel">
+        <div class="panel-header">
+          <h3>Mission brief</h3>
+          <span class="chart-chip">Auto-generated</span>
         </div>
+        <p id="text_summary">Adjust any slider and fire the simulation to generate the narrative.</p>
+      </div>
+
+      <details class="glow-panel" id="advanced_block">
+        <summary>Advanced telemetry (health, housing, business, risk)</summary>
+        <section class="advanced-grid">
+          <div>
+            <h4>Business & investment</h4>
+            <ul>
+              <li>Business formation index: <span id="business_formation_outcome">–</span></li>
+              <li>FDI index: <span id="fdi_outcome">–</span></li>
+              <li>Startup ecosystem: <span id="startup_outcome">–</span></li>
+              <li>Non-dom net flow: <span id="nondom_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Health & education</h4>
+            <ul>
+              <li>NHS waiting time index: <span id="nhs_wait_outcome">–</span></li>
+              <li>Life expectancy (years): <span id="life_expectancy_outcome">–</span></li>
+              <li>School performance index: <span id="school_perf_outcome">–</span></li>
+              <li>Apprenticeship index: <span id="apprentice_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Housing & cost of living</h4>
+            <ul>
+              <li>House price growth: <span id="house_price_outcome">–</span></li>
+              <li>Rent affordability: <span id="rent_afford_outcome">–</span></li>
+              <li>Housing supply index: <span id="housing_supply_outcome">–</span></li>
+              <li>Fuel poverty rate: <span id="fuel_poverty_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Social & inequality</h4>
+            <ul>
+              <li>Homelessness index: <span id="homeless_outcome">–</span></li>
+              <li>Food bank usage index: <span id="foodbank_outcome">–</span></li>
+              <li>Public unrest risk: <span id="unrest_outcome">–</span></li>
+              <li>Brain drain risk: <span id="brain_drain_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Environment & energy</h4>
+            <ul>
+              <li>Renewables share: <span id="renewables_outcome">–</span></li>
+              <li>Energy price index: <span id="energy_price_outcome">–</span></li>
+              <li>Air quality index: <span id="air_quality_outcome">–</span></li>
+            </ul>
+          </div>
+          <div>
+            <h4>International & tourism</h4>
+            <ul>
+              <li>Trade balance (% of GDP): <span id="trade_balance_outcome">–</span></li>
+              <li>Tourism flows index: <span id="tourism_outcome">–</span></li>
+              <li>Random event this term: <span id="shock_short">–</span></li>
+            </ul>
+          </div>
+        </section>
+      </details>
+
+      <section class="utility-row">
+        <button id="export_csv">Download telemetry (CSV)</button>
+        <button id="print_pdf">Print / Save as PDF</button>
       </section>
-    </details>
 
-    <section class="export-row">
-      <button id="export_csv">Export CSV</button>
-      <button id="print_pdf">Print / Save as PDF</button>
+      <section class="assumptions">
+        <h3>Model assumptions & limitations</h3>
+        <p>
+          Defaults are based on a stylised UK 2024–25 baseline (GDP, tax take, spending, and debt levels). The simulation
+          is a hand-built macro-fiscal model: no AI, no machine learning. All behaviour comes from multipliers, elasticities,
+          and rules defined in <code>config.js</code> and pure math in <code>engine.js</code>. It’s designed for learning,
+          not for official forecasting.
+        </p>
+      </section>
     </section>
+  </main>
 
-    <section id="assumptions">
-      <h3>Model assumptions & limitations</h3>
-      <p>
-        Defaults are based on a stylised UK 2024–25 baseline (GDP, tax take, spending, and debt levels). The simulation
-        is a hand-built macro-fiscal model: no AI, no machine learning. All behaviour comes from multipliers, elasticities,
-        and rules defined in <code>config.js</code> and pure math in <code>engine.js</code>. It’s designed for learning,
-        not for official forecasting.
-      </p>
-    </section>
-  </section>
-</main>
+  <footer class="command-footer">
+    <p>Open-source demo for the Budget Benchmark challenge. Futuristic console interface.</p>
+  </footer>
 
-<footer class="app-footer">
-  <p>Open-source demo for the Budget Benchmark challenge. v2.0 reactive dashboard architecture.</p>
-</footer>
-
-<!-- App logic (ES modules) -->
-<script type="module" src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
